@@ -11,25 +11,124 @@ const outputPath = path.join(OUTPUT_DIR, "team.html");
 const render = require("./lib/htmlRenderer");
 
 
-// Write code to use inquirer to gather information about the development team members,
-// and to create objects for each team member (using the correct classes as blueprints!)
+checkNotEmpty = (input) => { 
+  // console.log(input);
+  if(input === "") {
+    return `value cannot be empty`;
+  }
+  return true;
+}
+const employeeQuestions = (employeeType) => {
+  return [
+    {
+      message: `What is ${employeeType}'s name?`,
+      name: "name",
+      validate: checkNotEmpty
+    },
+    { 
+      message: "What is there's ID?",
+      name: "id",
+      validate: checkNotEmpty
+    },
+    {
+      message: "What is there's email?",
+      name: "email",
+      validate: checkNotEmpty
+    }
+  ]
+}
+const managerQuestions = [
+  {
+    message: "What is there's office number?",
+    name: "office",
+    validate: checkNotEmpty
+  },
+];
 
-// After the user has input all employees desired, call the `render` function (required
-// above) and pass in an array containing all employee objects; the `render` function will
-// generate and return a block of HTML including templated divs for each employee!
+const engineerQuestions = [
+  {
+    message: "What is there's github name?",
+    name: "github",
+    validate: checkNotEmpty
+  },
+];
 
-// After you have your html, you're now ready to create an HTML file using the HTML
-// returned from the `render` function. Now write it to a file named `team.html` in the
-// `output` folder. You can use the variable `outputPath` above target this location.
-// Hint: you may need to check if the `output` folder exists and create it if it
-// does not.
+const internQuestions = [
+  {
+    message: "What is the intern's school?",
+    name: "school"
+  }
+];
 
-// HINT: each employee type (manager, engineer, or intern) has slightly different
-// information; write your code to ask different questions via inquirer depending on
-// employee type.
+const employeeTypesQuestion = [
+  {
+    type: "list",
+    choices: [
+      "Engineer",
+      "Intern",
+      "None" 
+    ],
+    message: "What employee do you want to add?",
+    name: "employeeType",
+  },
+   ]
 
-// HINT: make sure to build out your classes first! Remember that your Manager, Engineer,
-// and Intern classes should all extend from a class named Employee; see the directions
-// for further information. Be sure to test out each class and verify it generates an
-// object with the correct structure and methods. This structure will be crucial in order
-// for the provided `render` function to work! ```
+init = async () => {
+  try {
+    const employees = [];
+    const {name, id, email, office} = await getManager(); 
+    console.log("_".repeat(100));  
+    employees.push(new Manager(name, id, email, office));
+    
+    let employeeType = ""; 
+    while( employeeType !== "None" ) {
+      ( 
+       { employeeType } = await inquirer.prompt(employeeTypesQuestion)
+      );
+
+      if( employeeType === "Engineer" )  {
+        let {name, id, email, github}  = await getEngineer();
+        employees.push(new Engineer(name, id, email, github));
+      }
+
+      if( employeeType === "Intern" ){
+        let {name, id, email, school} = await getIntern();
+        employees.push(new Intern(name, id, email, school));
+      }
+      console.log("_".repeat(100));
+    }
+    writeToFile(employees);
+
+  } catch (err){
+    console.log(err)
+    throw err;
+  }
+}
+
+getManager = () => {
+  return inquirer.prompt([...employeeQuestions("manager"), ...managerQuestions]);
+}
+getEngineer = () => {
+  return inquirer.prompt([...employeeQuestions("engineer"), ...engineerQuestions]);
+}
+
+getIntern = () => {
+  return inquirer.prompt([...employeeQuestions("intern"), ...internQuestions]);
+}
+
+writeToFile = (employees) => {
+  //Check if path exists if does not have it then create.
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR,{recursive: false }, (err) => {
+      if(err) throw new Error("Error in making Object");
+    })
+  }
+  
+  fs.writeFile(outputPath, render(employees), (err) => {
+    if(err) return new Error("error in writing html");
+    console.log("success");
+  }) 
+}
+
+init();
+
