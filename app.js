@@ -11,8 +11,7 @@ const outputPath = path.join(OUTPUT_DIR, "team.html");
 const render = require("./lib/htmlRenderer");
 
 
-checkNotEmpty = (input) => { 
-  // console.log(input);
+checkNotEmpty = ( input) => { 
   if(input === "") {
     return `value cannot be empty`;
   }
@@ -71,9 +70,10 @@ const employeeTypesQuestion = [
     message: "What employee do you want to add?",
     name: "employeeType",
   },
-   ]
+];
 
 init = async () => {
+
   try {
     const employees = [];
     const {name, id, email, office} = await getManager(); 
@@ -82,6 +82,7 @@ init = async () => {
     
     let employeeType = ""; 
     while( employeeType !== "None" ) {
+      //Get Type of employee you want to add;
       ( 
        { employeeType } = await inquirer.prompt(employeeTypesQuestion)
       );
@@ -95,7 +96,9 @@ init = async () => {
         let {name, id, email, school} = await getIntern();
         employees.push(new Intern(name, id, email, school));
       }
+
       console.log("_".repeat(100));
+
     }
     writeToFile(employees);
 
@@ -108,6 +111,7 @@ init = async () => {
 getManager = () => {
   return inquirer.prompt([...employeeQuestions("manager"), ...managerQuestions]);
 }
+
 getEngineer = () => {
   return inquirer.prompt([...employeeQuestions("engineer"), ...engineerQuestions]);
 }
